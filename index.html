@@ -20,10 +20,22 @@
         button#salir:hover { background-color: #c82333; }
         .result-item { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .result-item strong { display: inline-block; width: 120px; color: #555; }
+        .header-container { text-align: center; margin-bottom: 20px; }
+        .header-container img { max-width: 100%; height: auto; }
+        .header-text { margin-top: 10px; font-weight: bold; line-height: 1.5; }
     </style>
 </head>
 <body>
-    <h1>Consulta de Padrón</h1>
+    <div class="header-container">
+        <img src="logopad.png" alt="Logo SIGECE">
+        <div class="header-text">
+            SIGECE<br>
+            Sistema de Gestion y Consulta de Electores<br>
+            --------------------------------------------<br>
+            Padron A.N.R. 2026 - Fernando de la Mora
+        </div>
+    </div>
+
     <div class="form-group">
         <label for="cedula">Cédula de Identidad:</label>
         <input type="text" id="cedula" placeholder="Ingrese el número de cédula (Ej: 69954)">
