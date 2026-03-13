@@ -3,26 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Datos</title>
+    <title>SIGECE - Consulta de Padrón</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input { padding: 8px; width: 100%; box-sizing: border-box; }
-        .results { margin-top: 20px; border: 1px solid #ccc; padding: 15px; min-height: 100px; background-color: #f9f9f9; }
-        .button-group { margin-top: 20px; display: flex; gap: 10px; }
-        button { flex: 1; padding: 10px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
-        button:hover { background-color: #0056b3; }
-        button#limpiar { background-color: #6c757d; }
-        button#limpiar:hover { background-color: #5a6268; }
-        button#salir { background-color: #dc3545; }
-        button#salir:hover { background-color: #c82333; }
-        .result-item { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .result-item strong { display: inline-block; width: 120px; color: #555; }
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; color: #333; }
         .header-container { text-align: center; margin-bottom: 20px; }
         .header-container img { max-width: 100%; height: auto; }
-        .header-text { margin-top: 10px; font-weight: bold; line-height: 1.5; }
+        .header-text { margin-top: 10px; font-weight: bold; line-height: 1.5; font-size: 1.1em; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { padding: 10px; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; }
+        
+        .results { margin-top: 20px; border: 1px solid #ccc; min-height: 100px; background-color: #fff; border-radius: 4px; overflow: hidden; }
+        .results-placeholder { padding: 20px; color: #888; text-align: center; }
+        
+        .result-item { display: flex; border-bottom: 1px solid #eee; padding: 10px 15px; }
+        .result-item:last-child { border-bottom: none; }
+        .result-item strong { width: 130px; color: #555; font-size: 0.85em; flex-shrink: 0; }
+        .result-item span { font-size: 0.95em; color: #000; font-weight: 500; }
+        
+        .button-group { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+        button { flex: 1; min-width: 120px; padding: 12px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 0.9em; text-transform: uppercase; }
+        button:hover { opacity: 0.9; }
+        button#whatsapp { background-color: #25d366; }
+        button#limpiar { background-color: #6c757d; }
+        button#salir { background-color: #dc3545; }
     </style>
 </head>
 <body>
@@ -38,34 +44,37 @@
 
     <div class="form-group">
         <label for="cedula">Cédula de Identidad:</label>
-        <input type="text" id="cedula" placeholder="Ingrese el número de cédula (Ej: 69954)">
+        <input type="text" id="cedula" placeholder="Ingrese el número de cédula (Ej: 1477528)">
     </div>
 
     <div id="results" class="results">
-        <p style="color: #888;">Los resultados aparecerán aquí...</p>
+        <div class="results-placeholder">Los resultados aparecerán aquí...</div>
     </div>
 
     <div class="button-group">
         <button id="aceptar">ACEPTAR</button>
+        <button id="whatsapp">WHATSAPP</button>
         <button id="limpiar">LIMPIAR</button>
         <button id="salir">SALIR</button>
     </div>
 
     <script>
         let csvData = [];
+        let currentRecord = null;
 
         // Cargar datos del CSV al iniciar
         Papa.parse('anrfdo26.csv', {
             download: true,
             header: true,
             skipEmptyLines: true,
+            delimiter: ";", // Según lo observado en el archivo
             complete: function(results) {
                 csvData = results.data;
                 console.log('CSV cargado:', csvData.length, 'registros');
             },
             error: function(err) {
                 console.error('Error al cargar CSV:', err);
-                document.getElementById('results').innerHTML = '<p style="color: red;">Error al cargar el archivo de datos.</p>';
+                document.getElementById('results').innerHTML = '<div class="results-placeholder" style="color: red;">Error al cargar el archivo de datos.</div>';
             }
         });
 
@@ -79,10 +88,12 @@
             const record = csvData.find(row => row.cedula === cedulaInput);
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
+            currentRecord = record;
 
             if (record) {
                 const keys = Object.keys(record);
-                // Empezar desde el índice 1 (Columna B) en adelante
+                // Mostrar todos los campos excepto la cédula (que ya se ingresó) o mostrar todos según la captura
+                // En la captura se ve NOMBRE, APELLIDO, DIRECCION, etc.
                 for (let i = 1; i < keys.length; i++) {
                     const key = keys[i];
                     const val = record[key];
@@ -92,20 +103,41 @@
                     resultsDiv.appendChild(div);
                 }
             } else {
-                resultsDiv.innerHTML = '<p style="color: red;">No se encontró ningún registro con esa cédula.</p>';
+                resultsDiv.innerHTML = '<div class="results-placeholder" style="color: red;">No se encontró ningún registro con esa cédula.</div>';
             }
+        });
+
+        document.getElementById('whatsapp').addEventListener('click', () => {
+            if (!currentRecord) {
+                alert('Primero debe realizar una búsqueda exitosa.');
+                return;
+            }
+
+            let message = "SIGECE - Consulta de Padrón\n";
+            message += "Padron A.N.R. 2026 - Fernando de la Mora\n";
+            message += "--------------------------------------------\n";
+            message += `CÉDULA: ${currentRecord.cedula}\n`;
+            
+            const keys = Object.keys(currentRecord);
+            for (let i = 1; i < keys.length; i++) {
+                const key = keys[i];
+                const val = currentRecord[key];
+                message += `${key.toUpperCase()}: ${val || ''}\n`;
+            }
+
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
         });
 
         document.getElementById('limpiar').addEventListener('click', () => {
             document.getElementById('cedula').value = '';
-            document.getElementById('results').innerHTML = '<p style="color: #888;">Los resultados aparecerán aquí...</p>';
+            document.getElementById('results').innerHTML = '<div class="results-placeholder">Los resultados aparecerán aquí...</div>';
+            currentRecord = null;
         });
 
         document.getElementById('salir').addEventListener('click', () => {
             if (confirm('¿Está seguro de que desea salir?')) {
-                // Intento de cerrar la ventana/pestaña
                 window.close();
-                // Mensaje de respaldo si el navegador bloquea window.close()
                 setTimeout(() => {
                     alert('Si la pestaña no se cerró, por favor ciérrela manualmente.');
                 }, 500);
