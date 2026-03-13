@@ -1,0 +1,15 @@
+<<<<<<< SEARCH
+<body>
+    <h1>Consulta de Padrón</h1>
+=======
+<body>
+    <header style="text-align: center; margin-bottom: 20px;">
+        <img src="logopad.png" alt="Logo" style="max-width: 200px; height: auto;">
+        <h2 style="margin-top: 10px; font-size: 1.2em; line-height: 1.4;">
+            SIGECE<br>
+            Sistema de Gestion y Consulta de Electores<br>
+            --------------------------------------------<br>
+            Padron A.N.R. 2026 - Fernando de la Mora
+        </h2>
+    </header>
+>>>>>>> REPLACE
