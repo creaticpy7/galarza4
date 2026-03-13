@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Datos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { padding: 8px; width: 100%; box-sizing: border-box; }
+        .results { margin-top: 20px; border: 1px solid #ccc; padding: 15px; min-height: 100px; background-color: #f9f9f9; }
+        .button-group { margin-top: 20px; display: flex; gap: 10px; }
+        button { flex: 1; padding: 10px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background-color: #0056b3; }
+        button#limpiar { background-color: #6c757d; }
+        button#limpiar:hover { background-color: #5a6268; }
+        button#salir { background-color: #dc3545; }
+        button#salir:hover { background-color: #c82333; }
+        .result-item { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .result-item strong { display: inline-block; width: 120px; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>Consulta de Padrón</h1>
+    <div class="form-group">
+        <label for="cedula">Cédula de Identidad:</label>
+        <input type="text" id="cedula" placeholder="Ingrese el número de cédula (Ej: 69954)">
+    </div>
+
+    <div id="results" class="results">
+        <p style="color: #888;">Los resultados aparecerán aquí...</p>
+    </div>
+
+    <div class="button-group">
+        <button id="aceptar">ACEPTAR</button>
+        <button id="limpiar">LIMPIAR</button>
+        <button id="salir">SALIR</button>
+    </div>
+
+    <script>
+        let csvData = [];
+
+        // Cargar datos del CSV al iniciar
+        Papa.parse('anrfdo26.csv', {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                csvData = results.data;
+                console.log('CSV cargado:', csvData.length, 'registros');
+            },
+            error: function(err) {
+                console.error('Error al cargar CSV:', err);
+                document.getElementById('results').innerHTML = '<p style="color: red;">Error al cargar el archivo de datos.</p>';
+            }
+        });
+
+        document.getElementById('aceptar').addEventListener('click', () => {
+            const cedulaInput = document.getElementById('cedula').value.trim();
+            if (!cedulaInput) {
+                alert('Por favor ingrese un número de cédula.');
+                return;
+            }
+
+            const record = csvData.find(row => row.cedula === cedulaInput);
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            if (record) {
+                const keys = Object.keys(record);
+                // Empezar desde el índice 1 (Columna B) en adelante
+                for (let i = 1; i < keys.length; i++) {
+                    const key = keys[i];
+                    const val = record[key];
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `<strong>${key.toUpperCase()}:</strong> <span>${val || ''}</span>`;
+                    resultsDiv.appendChild(div);
+                }
+            } else {
+                resultsDiv.innerHTML = '<p style="color: red;">No se encontró ningún registro con esa cédula.</p>';
+            }
+        });
+
+        document.getElementById('limpiar').addEventListener('click', () => {
+            document.getElementById('cedula').value = '';
+            document.getElementById('results').innerHTML = '<p style="color: #888;">Los resultados aparecerán aquí...</p>';
+        });
+
+        document.getElementById('salir').addEventListener('click', () => {
+            if (confirm('¿Está seguro de que desea salir?')) {
+                // Intento de cerrar la ventana/pestaña
+                window.close();
+                // Mensaje de respaldo si el navegador bloquea window.close()
+                setTimeout(() => {
+                    alert('Si la pestaña no se cerró, por favor ciérrela manualmente.');
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
